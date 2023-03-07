@@ -1,14 +1,16 @@
 package com.example.noteapp.domain.repository
 
 import com.example.noteapp.domain.model.Note
+import com.example.noteapp.domain.utils.ResultStatus
+import kotlinx.coroutines.flow.Flow
 
 interface NoteRepository {
 
-    fun createNote(note: Note)
+    fun createNote(note: Note): Flow<ResultStatus<Unit>>
 
-    fun getAllNotes(): List<Note>
+    fun getAllNotes(): Flow<ResultStatus<List<Note>>>
 
-    fun editNote(note: Note)
+    fun editNote(note: Note): Flow<ResultStatus<Unit>>
 
-    fun deleteNote(note: Note)
+    fun deleteNote(note: Note): Flow<ResultStatus<Unit>>
 }
