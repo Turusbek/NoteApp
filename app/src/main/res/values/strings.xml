@@ -6,4 +6,6 @@
     <string name="description">Description</string>
     <string name="date">2006/07/18</string>
     <string name="save">Save</string>
+    <string name="delete">Note successfully deleted</string>
+    <string name="created">\"Note successfully created \"</string>
 </resources>

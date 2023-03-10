@@ -1,59 +1,76 @@
 package com.example.noteapp.presentation.fragment.note
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.fragment.app.Fragment
+import androidx.core.os.bundleOf
+import androidx.core.view.isVisible
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.example.noteapp.R
 import com.example.noteapp.databinding.FragmentNoteBinding
-import kotlinx.coroutines.launch
+import com.example.noteapp.domain.model.Note
+import com.example.noteapp.presentation.base.BaseFragment
+import com.example.noteapp.presentation.extension.showToast
+import dagger.hilt.android.AndroidEntryPoint
 
-class NoteFragment : Fragment() {
-    private lateinit var binding:FragmentNoteBinding
-    private val viewModel: NoteViewModel by viewModels()
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_note, container, false)
+@AndroidEntryPoint
+class NoteFragment :
+    BaseFragment<NoteViewModel, FragmentNoteBinding>(FragmentNoteBinding::inflate) {
+    override val vm: NoteViewModel by viewModels()
+    private val adapter by lazy { NoteAdapter(this::onItemClick, this::onLongItemClick) }
+
+    private fun onItemClick(note: Note) {
+        val bundle = bundleOf().apply {
+            putSerializable(ARG_ADD_EDIT, note)
+        }
+        findNavController().navigate(R.id.action_noteFragment_to_addNoteFragment, bundle)
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        binding = FragmentNoteBinding.bind(view)
-        //listeners()
+    private fun onLongItemClick(note: Note) {
+        vm.deleteNote(note)
+    }
+
+    override fun initialize() {
+        binding.rvNote.adapter = adapter
+    }
+
+    override fun listeners() {
         binding.btnAdd.setOnClickListener {
-            findNavController().navigate(R.id.addNoteFragment)
+            findNavController().navigate(R.id.action_noteFragment_to_addNoteFragment)
         }
     }
 
-//    private fun listeners() {
-//        viewLifecycleOwner.lifecycleScope.launch {
-//            repeatOnLifecycle(Lifecycle.State.STARTED){
-//                viewModel.noteState.collect{
-//                    when(it){
-//                        is UiState.Empty -> {
-//
-//                        }
-//                        is UiState.Error -> {
-//
-//                        }
-//                        is UiState.Loading -> {
-//
-//                        }
-//                        is UiState.Success -> {
-//
-//                        }
-                    }
-//                }
-//            }
-//        }
-//    }
-// }
+    override fun setupRequest() {
+        vm.noteState.collectState(onLoading = {
+            binding.noteProgress.isVisible = true
+
+        }, onError = {
+            binding.noteProgress.isVisible = false
+            showToast(it)
+        }, onSuccess = {
+            binding.noteProgress.isVisible = false
+            adapter.updateList(it)
+        })
+
+        vm.deleteNoteState.collectState(
+            onLoading = {
+                binding.noteProgress.isVisible = true
+            },
+            onError = {
+                binding.noteProgress.isVisible = false
+                showToast(it)
+
+            },
+            onSuccess = {
+                binding.noteProgress.isVisible = false
+                showToast(R.string.delete)
+
+            }
+        )
+
+    }
+
+    companion object {
+        const val ARG_ADD_EDIT = "edit note"
+    }
+
+
+}
