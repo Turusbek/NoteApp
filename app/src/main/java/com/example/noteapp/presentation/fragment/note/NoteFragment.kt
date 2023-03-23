@@ -67,7 +67,6 @@ class NoteFragment :
         )
 
     }
-
     companion object {
         const val ARG_ADD_EDIT = "edit note"
     }

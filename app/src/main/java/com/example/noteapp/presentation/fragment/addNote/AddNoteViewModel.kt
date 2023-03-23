@@ -37,4 +37,20 @@ class AddNoteViewModel @Inject constructor(
         }
     }
 
+    fun update(id:Int,title:String,desc: String) {
+        if (id != null && title.isNotEmpty() && desc.isNotEmpty()) {
+            editNoteUseCase (Note(
+                id = id,
+                title = title,
+                description = desc,
+                createAt = System.currentTimeMillis()
+            )
+
+            ).collectFlow(_editState)
+        } else {
+            _editState.value = UiState.Error("Title is empty")
+        }
+
+    }
+
 }
